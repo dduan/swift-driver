@@ -785,7 +785,7 @@ final class SwiftDriverTests: XCTestCase {
     try withTemporaryFile { file in
       try assertNoDiagnostics { diags in
         try localFileSystem.writeFileContents(file.path) { $0 <<< contents }
-        let outputFileMap = try OutputFileMap.load(fileSystem: localFileSystem, file: .absolute(file.path), diagnosticEngine: diags)
+        let outputFileMap = try OutputFileMap.load(fileSystem: localFileSystem, file: .absolute(file.path))
 
         let object = try outputFileMap.getOutput(inputFile: VirtualPath.intern(path: "/tmp/foo/Sources/foo/foo.swift"), outputType: .object)
         XCTAssertEqual(VirtualPath.lookup(object).name, "/tmp/foo/.build/x86_64-apple-macosx/debug/foo.build/foo.swift.o")
@@ -814,7 +814,7 @@ final class SwiftDriverTests: XCTestCase {
     try withTemporaryFile { file in
       try assertNoDiagnostics { diags in
         try localFileSystem.writeFileContents(file.path) { $0 <<< contents }
-        let outputFileMap = try OutputFileMap.load(fileSystem: localFileSystem, file: .absolute(file.path), diagnosticEngine: diags)
+        let outputFileMap = try OutputFileMap.load(fileSystem: localFileSystem, file: .absolute(file.path))
 
         let obj = try outputFileMap.getOutput(inputFile: VirtualPath.intern(path: "/tmp/foo/.build/x86_64-apple-macosx/debug/foo.build/foo.swift.bc"), outputType: .object)
         XCTAssertEqual(VirtualPath.lookup(obj).name, "/tmp/foo/.build/x86_64-apple-macosx/debug/foo.build/foo.swift.o")
@@ -840,7 +840,7 @@ final class SwiftDriverTests: XCTestCase {
     try withTemporaryFile { file in
       try assertNoDiagnostics { diags in
         try localFileSystem.writeFileContents(file.path) { $0 <<< contents }
-        let outputFileMap = try OutputFileMap.load(fileSystem: localFileSystem, file: .absolute(file.path), diagnosticEngine: diags)
+        let outputFileMap = try OutputFileMap.load(fileSystem: localFileSystem, file: .absolute(file.path))
 
         let doc = try outputFileMap.getOutput(inputFile: VirtualPath.intern(path: "/tmp/foo/Sources/foo/foo.swift"), outputType: .swiftDocumentation)
         XCTAssertEqual(VirtualPath.lookup(doc).name, "/tmp/foo/.build/x86_64-apple-macosx/debug/foo.build/foo~partial.swiftdoc")
@@ -1070,10 +1070,10 @@ final class SwiftDriverTests: XCTestCase {
     let sampleOutputFileMap = OutputFileMap(entries: pathyEntries)
 
     try withTemporaryFile { file in
-      try sampleOutputFileMap.store(fileSystem: localFileSystem, file: file.path, diagnosticEngine: DiagnosticsEngine())
+      try sampleOutputFileMap.store(fileSystem: localFileSystem, file: file.path)
       let contentsForDebugging = try localFileSystem.readFileContents(file.path).cString
       _ = contentsForDebugging
-      let recoveredOutputFileMap = try OutputFileMap.load(fileSystem: localFileSystem, file: .absolute(file.path), diagnosticEngine: DiagnosticsEngine())
+      let recoveredOutputFileMap = try OutputFileMap.load(fileSystem: localFileSystem, file: .absolute(file.path))
       XCTAssertEqual(sampleOutputFileMap, recoveredOutputFileMap)
     }
   }

@@ -20,10 +20,7 @@ extension Toolchain {
     return primaryPath.parentDirectory.appending(component: "macosx")
   }
 
-  func clangLibraryPath(
-    for targetInfo: FrontendTargetInfo,
-    parsedOptions: inout ParsedOptions
-  ) throws -> VirtualPath {
+  func clangLibraryPath(for targetInfo: FrontendTargetInfo) throws -> VirtualPath {
     return VirtualPath.lookup(targetInfo.runtimeResourcePath.path)
       .appending(components: "clang", "lib",
                  targetInfo.target.triple.platformName(conflatingDarwin: true)!)
@@ -31,9 +28,7 @@ extension Toolchain {
 
   func runtimeLibraryPaths(
     for targetInfo: FrontendTargetInfo,
-    parsedOptions: inout ParsedOptions,
-    sdkPath: VirtualPath.Handle?,
-    isShared: Bool
+    sdkPath: VirtualPath.Handle?
   ) throws -> [VirtualPath] {
     let triple = targetInfo.target.triple
     let resourceDirPath = VirtualPath.lookup(targetInfo.runtimeResourcePath.path).appending(component: triple.platformName() ?? "")
@@ -62,9 +57,7 @@ extension Toolchain {
     for targetInfo: FrontendTargetInfo,
     parsedOptions: inout ParsedOptions
   ) throws {
-    let path = try clangLibraryPath(
-      for: targetInfo,
-      parsedOptions: &parsedOptions)
+    let path = try clangLibraryPath(for: targetInfo)
       .appending(component: name)
     commandLine.appendPath(path)
   }
@@ -80,10 +73,7 @@ extension Toolchain {
       targetTriple: targetInfo.target.triple,
       isShared: isShared
     )
-    let path = try clangLibraryPath(
-      for: targetInfo,
-      parsedOptions: &parsedOptions
-    ).appending(component: runtimeName)
+    let path = try clangLibraryPath(for: targetInfo).appending(component: runtimeName)
     return try fileSystem.exists(path)
   }
 
@@ -140,9 +130,7 @@ extension DarwinToolchain {
     // relative to the compiler.
     let runtimePaths = try runtimeLibraryPaths(
       for: targetInfo,
-      parsedOptions: &parsedOptions,
-      sdkPath: targetInfo.sdkPath?.path,
-      isShared: true
+      sdkPath: targetInfo.sdkPath?.path
     )
     for path in runtimePaths {
       commandLine.appendFlag(.L)

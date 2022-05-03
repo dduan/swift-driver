@@ -75,9 +75,7 @@ extension DarwinToolchain {
     // from the default location without copying.
 
 
-    let clangPath = try clangLibraryPath(
-      for: targetInfo,
-      parsedOptions: &parsedOptions)
+    let clangPath = try clangLibraryPath(for: targetInfo)
     commandLine.appendFlag("-rpath")
     commandLine.appendPath(clangPath)
   }
@@ -123,8 +121,7 @@ extension DarwinToolchain {
     targetInfo: FrontendTargetInfo
   ) throws {
     guard parsedOptions.hasArgument(.profileGenerate) else { return }
-    let clangPath = try clangLibraryPath(for: targetInfo,
-                                         parsedOptions: &parsedOptions)
+    let clangPath = try clangLibraryPath(for: targetInfo)
 
     for runtime in targetInfo.target.triple.darwinPlatform!.profileLibraryNameSuffixes {
       let clangRTPath = clangPath
@@ -324,10 +321,8 @@ extension DarwinToolchain {
     let darwinPlatformSuffix =
       targetTriple.darwinPlatform!.with(.device)!.libraryNameSuffix
     let compilerRTPath =
-      try clangLibraryPath(
-        for: targetInfo,
-        parsedOptions: &parsedOptions)
-      .appending(component: "libclang_rt.\(darwinPlatformSuffix).a")
+      try clangLibraryPath(for: targetInfo)
+        .appending(component: "libclang_rt.\(darwinPlatformSuffix).a")
     if try fileSystem.exists(compilerRTPath) {
       commandLine.append(.path(compilerRTPath))
     }

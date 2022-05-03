@@ -88,9 +88,6 @@ extension SourceFileDependencyGraph: ExportableGraph {
 }
 
 extension ModuleDependencyGraph: ExportableGraph {
-  fileprivate var graphID: String {
-    return "ModuleDependencyGraph"
-  }
   fileprivate func forEachExportableNode<Node: ExportableNode>(
     _ visit: (Node) -> Void) {
     nodeFinder.forEachNode { visit($0 as! Node) }

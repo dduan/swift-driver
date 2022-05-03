@@ -68,11 +68,9 @@ import SwiftOptions
 
   convenience init?(
     actualSwiftVersion: String,
-    compilerOutputType: FileType?,
     workingDirectory: AbsolutePath?,
     diagnosticEngine: DiagnosticsEngine,
     fileSystem: FileSystem,
-    moduleOutputInfo: ModuleOutputInfo,
     outputFileMap: OutputFileMap?,
     incremental: Bool,
     parsedOptions: ParsedOptions,
@@ -82,7 +80,6 @@ import SwiftOptions
     guard let buildRecordPath = Self.computeBuildRecordPath(
             outputFileMap: outputFileMap,
             incremental: incremental,
-            compilerOutputType: compilerOutputType,
             workingDirectory: workingDirectory,
             diagnosticEngine: diagnosticEngine)
     else {
@@ -119,7 +116,6 @@ import SwiftOptions
   private static func computeBuildRecordPath(
     outputFileMap: OutputFileMap?,
     incremental: Bool,
-    compilerOutputType: FileType?,
     workingDirectory: AbsolutePath?,
     diagnosticEngine: DiagnosticsEngine
   ) -> VirtualPath? {
@@ -144,11 +140,10 @@ import SwiftOptions
   /// Write out the build record.
   ///
   /// - Parameters:
-  ///   - jobs: All compilation jobs formed during this build.
   ///   - skippedInputs: All primary inputs that were not compiled because the
   ///                    incremental build plan determined they could be
   ///                    skipped.
-  func writeBuildRecord(_ jobs: [Job], _ skippedInputs: Set<TypedVirtualPath>?) {
+  func writeBuildRecord(_ skippedInputs: Set<TypedVirtualPath>?) {
     guard let absPath = buildRecordPath.absolutePath else {
       diagnosticEngine.emit(
         .warning_could_not_write_build_record_not_absolutePath(buildRecordPath))
@@ -158,7 +153,6 @@ import SwiftOptions
 
     let buildRecord = self.confinementQueue.sync {
       BuildRecord(
-        jobs: jobs,
         finishedJobResults: finishedJobResults,
         skippedInputs: skippedInputs,
         compilationInputModificationDates: compilationInputModificationDates,
@@ -199,10 +193,7 @@ import SwiftOptions
 
 
 // TODO: Incremental too many names, buildRecord BuildRecord outofdatemap
-  func populateOutOfDateBuildRecord(
-    inputFiles: [TypedVirtualPath],
-    reporter: IncrementalCompilationState.Reporter?
-  ) -> BuildRecord? {
+  func populateOutOfDateBuildRecord(reporter: IncrementalCompilationState.Reporter?) -> BuildRecord? {
     let contents: String
     do {
       contents = try fileSystem.readFileContents(buildRecordPath).cString

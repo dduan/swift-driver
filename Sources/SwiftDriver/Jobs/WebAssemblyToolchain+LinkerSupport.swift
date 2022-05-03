@@ -73,9 +73,7 @@ extension WebAssemblyToolchain {
 
       let runtimePaths = try runtimeLibraryPaths(
         for: targetInfo,
-        parsedOptions: &parsedOptions,
-        sdkPath: targetInfo.sdkPath?.path,
-        isShared: false
+        sdkPath: targetInfo.sdkPath?.path
       )
 
       let swiftrtPath = VirtualPath.lookup(targetInfo.runtimeResourcePath.path)

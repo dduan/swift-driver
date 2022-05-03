@@ -49,10 +49,6 @@ public struct BuildRecord {
 
     var serializedName: String { rawValue }
   }
-
-  var allInputs: Set<VirtualPath> {
-    Set(inputInfos.map { $0.key })
-  }
 }
 
 // MARK: - Reading the old map and deciding whether to use it
@@ -194,8 +190,7 @@ public extension BuildRecord {
 // MARK: - Creating and writing a new map
 extension BuildRecord {
   /// Create a new buildRecord for writing
-  init(jobs: [Job],
-       finishedJobResults: [BuildRecordInfo.JobResult],
+  init(finishedJobResults: [BuildRecordInfo.JobResult],
        skippedInputs: Set<TypedVirtualPath>?,
        compilationInputModificationDates: [TypedVirtualPath: Date],
        actualSwiftVersion: String,

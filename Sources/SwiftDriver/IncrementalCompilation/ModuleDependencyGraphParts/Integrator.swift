@@ -56,10 +56,6 @@ extension ModuleDependencyGraph {
       destination.info.reporter
     }
 
-    var sourceType: FileType {
-      dependencySource.typedFile.type
-    }
-
     var isUpdating: Bool {
       destination.phase.isUpdating
     }

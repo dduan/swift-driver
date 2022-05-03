@@ -56,10 +56,6 @@ struct CompileJobGroup {
     compileJob.primaryInputs[0]
   }
 
-  var primarySwiftSourceInput: SwiftSourceFile? {
-    SwiftSourceFile(ifSource: primaryInput)
-  }
-
   var outputs: [TypedVirtualPath] {
     allJobs().flatMap {$0.outputs}
   }
@@ -439,27 +435,6 @@ extension Driver {
     return try mergeModuleJob(inputs: moduleInputs, inputsFromOutputs: moduleInputsFromJobOutputs)
   }
 
-  func getAdopterConfigPathFromXcodeDefaultToolchain() -> AbsolutePath? {
-    let swiftPath = try? toolchain.resolvedTool(.swiftCompiler).path
-    guard var swiftPath = swiftPath else {
-      return nil
-    }
-    let toolchains = "Toolchains"
-    guard swiftPath.components.contains(toolchains) else {
-      return nil
-    }
-    while swiftPath.basename != toolchains  {
-      swiftPath = swiftPath.parentDirectory
-    }
-    assert(swiftPath.basename == toolchains)
-    return swiftPath.appending(component: "XcodeDefault.xctoolchain")
-      .appending(component: "usr")
-      .appending(component: "local")
-      .appending(component: "lib")
-      .appending(component: "swift")
-      .appending(component: "adopter_configs.json")
-  }
-
   @_spi(Testing) public struct AdopterConfig: Decodable {
     public let key: String
     public let moduleNames: [String]
@@ -470,13 +445,6 @@ extension Driver {
       try JSONDecoder().decode([AdopterConfig].self, from: $0)
     }
     return results ?? []
-  }
-
-  func getAdopterConfigsFromXcodeDefaultToolchain() -> [AdopterConfig] {
-    if let config = getAdopterConfigPathFromXcodeDefaultToolchain() {
-      return Driver.parseAdopterConfigs(config)
-    }
-    return []
   }
 
   @_spi(Testing) public static func getAllConfiguredModules(withKey: String, _ configs: [AdopterConfig]) -> Set<String> {

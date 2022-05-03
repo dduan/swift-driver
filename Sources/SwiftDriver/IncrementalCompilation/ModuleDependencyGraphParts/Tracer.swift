@@ -26,8 +26,6 @@ extension ModuleDependencyGraph {
     /// If tracing dependencies, holds a vector used to hold the current path
     /// def - use/def - use/def - ...
     private var currentPathIfTracing: [Node]?
-
-    private let diagnosticEngine: DiagnosticsEngine
   }
 }
 
@@ -39,28 +37,22 @@ extension ModuleDependencyGraph.Tracer {
   /// - Parameters:
   ///   - defNodes: Nodes for changed declarations
   ///   - graph: The graph hosting the nodes
-  ///   - diagnosticEngine: The complaint department
   /// - Returns: all uses of the changed nodes that have not already been traced. These represent
   /// heretofore-unschedule compilations that are now required.
   static func collectPreviouslyUntracedNodesUsing(
     defNodes: DirectlyInvalidatedNodeSet,
-    in graph: ModuleDependencyGraph,
-    diagnosticEngine: DiagnosticsEngine
+    in graph: ModuleDependencyGraph
   ) -> Self {
-    var tracer = Self(collectingUsesOf: defNodes,
-                      in: graph,
-                      diagnosticEngine: diagnosticEngine)
+    var tracer = Self(collectingUsesOf: defNodes, in: graph)
     tracer.collectPreviouslyUntracedDependents()
     return tracer
   }
 
   private init(collectingUsesOf defs: DirectlyInvalidatedNodeSet,
-               in graph: ModuleDependencyGraph,
-               diagnosticEngine: DiagnosticsEngine) {
+               in graph: ModuleDependencyGraph) {
     self.graph = graph
     self.startingPoints = defs
     self.currentPathIfTracing = graph.info.reporter != nil ? [] : nil
-    self.diagnosticEngine = diagnosticEngine
   }
   
   private mutating func collectPreviouslyUntracedDependents() {

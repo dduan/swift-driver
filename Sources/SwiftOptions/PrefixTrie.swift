@@ -109,14 +109,6 @@ public struct PrefixTrie<Payload> {
       }
     }
 
-    /// Replaces the existing child for that `id` with the provided child.
-    func updateChild(_ node: Node) {
-      let index = children.lowerBound(of: node) {
-        $0.id < $1.id
-      }
-      children[index] = node
-    }
-
     /// Searches through the trie for the given string, returning the kind of
     /// match made.
     func query<S: StringProtocol>(_ s: S) -> QueryResult {

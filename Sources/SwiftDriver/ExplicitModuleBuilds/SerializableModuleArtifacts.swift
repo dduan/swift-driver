@@ -68,11 +68,6 @@ public enum BatchScanModuleInfo: Encodable {
 public struct BatchScanSwiftModuleInfo: Encodable {
   var swiftModuleName: String
   var output: String
-
-  init(moduleName: String, outputPath: String) {
-    self.swiftModuleName = moduleName
-    self.output = outputPath
-  }
 }
 
 public struct BatchScanClangModuleInfo: Encodable {

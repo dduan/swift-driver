@@ -60,9 +60,7 @@ extension GenericUnixToolchain {
 
     let runtimePaths = try runtimeLibraryPaths(
       for: targetInfo,
-      parsedOptions: &parsedOptions,
-      sdkPath: sdkPath,
-      isShared: true
+      sdkPath: sdkPath
     ).map { $0.name }
 
     addPathEnvironmentVariableIfNeeded("LD_LIBRARY_PATH", to: &envVars,

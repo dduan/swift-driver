@@ -141,9 +141,7 @@ extension GenericUnixToolchain {
 
       let runtimePaths = try runtimeLibraryPaths(
         for: targetInfo,
-        parsedOptions: &parsedOptions,
-        sdkPath: targetInfo.sdkPath?.path,
-        isShared: hasRuntimeArgs
+        sdkPath: targetInfo.sdkPath?.path
       )
 
       if hasRuntimeArgs && targetTriple.environment != .android &&

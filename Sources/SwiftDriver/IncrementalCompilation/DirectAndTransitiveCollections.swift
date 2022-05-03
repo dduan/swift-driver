@@ -48,18 +48,6 @@ public struct InvalidatedSet<ClosureLevel, Element: Hashable>: Sequence {
   }
 }
 
-extension InvalidatedSet where Element: Comparable {
-  func sorted() -> InvalidatedArray<ClosureLevel, Element> {
-    sorted(by: <)
-  }
-}
-extension InvalidatedSet {
-  func sorted(by areInIncreasingOrder: (Element, Element) -> Bool
-  ) -> InvalidatedArray<ClosureLevel, Element>  {
-    InvalidatedArray(contents.sorted(by: areInIncreasingOrder))
-  }
-}
-
 public struct InvalidatedArray<ClosureLevel, Element>: Sequence {
   var contents: [Element]
 

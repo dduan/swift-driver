@@ -217,10 +217,3 @@ extension ModuleDependencyGraph.NodeFinder {
     fatalError("This declaration is not defined anywhere and thus cannot depend upon anything.")
   }
 }
-
-// MARK: - Checking Serialization
-extension ModuleDependencyGraph.NodeFinder {
-  func matches(_ other: Self) -> Bool {
-    nodeMap == other.nodeMap && usesByDef == other.usesByDef
-  }
-}

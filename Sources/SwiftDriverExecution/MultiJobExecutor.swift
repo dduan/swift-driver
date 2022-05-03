@@ -392,7 +392,7 @@ class ExecuteAllJobsRule: LLBuildRule {
 
   init(context: MultiJobExecutor.Context) {
     self.context = context
-    super.init(fileSystem: context.fileSystem)
+    super.init()
   }
 
   override func start(_ engine: LLTaskBuildEngine) {
@@ -459,7 +459,7 @@ class ExecuteAllCompilationJobsRule: LLBuildRule {
 
   init(context: MultiJobExecutor.Context) {
     self.context = context
-    super.init(fileSystem: context.fileSystem)
+    super.init()
   }
 
   override func start(_ engine: LLTaskBuildEngine) {
@@ -515,7 +515,7 @@ class ExecuteJobRule: LLBuildRule {
   init(_ key: Key, context: MultiJobExecutor.Context) {
     self.key = RuleKey(key)
     self.context = context
-    super.init(fileSystem: context.fileSystem)
+    super.init()
   }
 
   override func start(_ engine: LLTaskBuildEngine) {
@@ -533,7 +533,7 @@ class ExecuteJobRule: LLBuildRule {
   }
 
   override func provideValue(_ engine: LLTaskBuildEngine, inputID: Int, value: Value) {
-    rememberIfInputSucceeded(engine, value: value)
+    rememberIfInputSucceeded(value: value)
   }
 
   /// Called when the build engine thinks all inputs are available in order to run the job.
@@ -555,7 +555,7 @@ class ExecuteJobRule: LLBuildRule {
     context.jobs[key.index]
   }
 
-  private func rememberIfInputSucceeded(_ engine: LLTaskBuildEngine, value: Value) {
+  private func rememberIfInputSucceeded(value: Value) {
     do {
       let buildValue = try DriverBuildValue(value)
       allInputsSucceeded = allInputsSucceeded && buildValue.success
@@ -684,9 +684,5 @@ private extension TSCBasic.Diagnostic.Message {
 
   static func error_command_signalled(kind: Job.Kind, signal: Int32) -> TSCBasic.Diagnostic.Message {
     .error("\(kind.rawValue) command failed due to signal \(signal) (use -v to see invocation)")
-  }
-
-  static func error_command_exception(kind: Job.Kind, exception: UInt32) -> TSCBasic.Diagnostic.Message {
-    .error("\(kind.rawValue) command failed due to exception \(exception) (use -v to see invocation)")
   }
 }

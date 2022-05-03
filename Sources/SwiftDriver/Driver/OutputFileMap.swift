@@ -116,8 +116,7 @@ public struct OutputFileMap: Hashable, Codable {
   /// Load the output file map at the given path.
   @_spi(Testing) public static func load(
     fileSystem: FileSystem,
-    file: VirtualPath,
-    diagnosticEngine: DiagnosticsEngine
+    file: VirtualPath
   ) throws -> OutputFileMap {
     // Load and decode the file.
     let contents = try fileSystem.readFileContents(file)
@@ -133,8 +132,7 @@ public struct OutputFileMap: Hashable, Codable {
   /// Store the output file map at the given path.
   public func store(
     fileSystem: FileSystem,
-    file: AbsolutePath,
-    diagnosticEngine: DiagnosticsEngine
+    file: AbsolutePath
   ) throws {
     let encoder = JSONEncoder()
 

@@ -139,12 +139,6 @@ extension IncrementalCompilationState {
     }
   }
 
-  public func collectJobsDiscoveredToBeNeededAfterFinishing(
-    job finishedJob: Job, result: ProcessResult
-  ) throws -> [Job]? {
-    try collectJobsDiscoveredToBeNeededAfterFinishing(job: finishedJob)
-  }
-
   public var skippedJobs: [Job] {
     blockingConcurrentMutationToProtectedState {
       $0.skippedJobs

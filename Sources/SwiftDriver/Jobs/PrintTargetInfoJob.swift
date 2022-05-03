@@ -24,11 +24,6 @@ struct SwiftVersion {
     self.major = components[0]
     self.minor = components[1]
   }
-
-  init(major: Int, minor: Int) {
-    self.major = major
-    self.minor = minor
-  }
 }
 
 extension SwiftVersion: Comparable {

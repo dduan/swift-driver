@@ -223,22 +223,6 @@ public struct Driver {
   /// Only used for reading when compiling incrementally.
   @_spi(Testing) public let buildRecordInfo: BuildRecordInfo?
 
-  /// A build-record-relative path to the location of a serialized copy of the
-  /// driver's dependency graph.
-  ///
-  /// FIXME: This is a little ridiculous. We could probably just replace the
-  /// build record outright with a serialized format.
-  var driverDependencyGraphPath: VirtualPath? {
-    guard let recordInfo = self.buildRecordInfo else {
-      return nil
-    }
-    let filename = recordInfo.buildRecordPath.basenameWithoutExt
-    return recordInfo
-      .buildRecordPath
-      .parentDirectory
-      .appending(component: filename + ".priors")
-  }
-  
   /// Whether to consider incremental compilation.
   let shouldAttemptIncrementalCompilation: Bool
   
@@ -532,8 +516,7 @@ public struct Driver {
     // Compute the host machine's triple
     self.hostTriple =
       try Self.computeHostTriple(&self.parsedOptions, diagnosticsEngine: diagnosticEngine,
-                                 toolchain: self.toolchain, executor: self.executor,
-                                 swiftCompilerPrefixArgs: self.swiftCompilerPrefixArgs)
+                                 toolchain: self.toolchain, executor: self.executor)
 
     // Classify and collect all of the input files.
     let inputFiles = try Self.collectInputFiles(&self.parsedOptions, diagnosticsEngine: diagnosticsEngine)
@@ -551,7 +534,7 @@ public struct Driver {
       if let outputFileMapArg = parsedOptions.getLastArgument(.outputFileMap)?.asSingle {
         do {
           let path = try VirtualPath(path: outputFileMapArg)
-          outputFileMap = try .load(fileSystem: fileSystem, file: path, diagnosticEngine: diagnosticEngine)
+          outputFileMap = try .load(fileSystem: fileSystem, file: path)
         } catch let error {
           throw Error.unableToLoadOutputFileMap(outputFileMapArg, error.localizedDescription)
         }
@@ -637,17 +620,15 @@ public struct Driver {
 
     self.buildRecordInfo = BuildRecordInfo(
       actualSwiftVersion: self.frontendTargetInfo.compilerVersion,
-      compilerOutputType: compilerOutputType,
       workingDirectory: self.workingDirectory ?? fileSystem.currentWorkingDirectory,
       diagnosticEngine: diagnosticEngine,
       fileSystem: fileSystem,
-      moduleOutputInfo: moduleOutputInfo,
       outputFileMap: outputFileMap,
       incremental: self.shouldAttemptIncrementalCompilation,
       parsedOptions: parsedOptions,
       recordedInputModificationDates: recordedInputModificationDates)
 
-    self.importedObjCHeader = try Self.computeImportedObjCHeader(&parsedOptions, compilerMode: compilerMode, diagnosticEngine: diagnosticEngine)
+    self.importedObjCHeader = try Self.computeImportedObjCHeader(&parsedOptions, diagnosticEngine: diagnosticEngine)
     self.bridgingPrecompiledHeader = try Self.computeBridgingPrecompiledHeader(&parsedOptions,
                                                                                compilerMode: compilerMode,
                                                                                importedObjCHeader: importedObjCHeader,
@@ -769,7 +750,6 @@ public struct Driver {
       &parsedOptions,
       moduleOutputPath: self.moduleOutputInfo.output?.outputPath,
       mode: self.digesterMode,
-      compilerOutputType: compilerOutputType,
       compilerMode: compilerMode,
       outputFileMap: self.outputFileMap,
       moduleName: moduleOutputInfo.name,
@@ -1333,7 +1313,7 @@ extension Driver {
     if !childJobs.isEmpty {
       do {
         defer {
-          writeIncrementalBuildInformation(jobs)
+          writeIncrementalBuildInformation()
         }
         try performTheBuild(allJobs: childJobs,
                             jobExecutionDelegate: toolExecutionDelegate,
@@ -1407,7 +1387,7 @@ extension Driver {
       recordedInputModificationDates: recordedInputModificationDates)
   }
 
-  public func writeIncrementalBuildInformation(_ jobs: [Job]) {
+  public func writeIncrementalBuildInformation() {
     // In case the write fails, don't crash the build.
     // A mitigation to rdar://76359678.
     // If the write fails, import incrementality is lost, but it is not a fatal error.
@@ -1424,7 +1404,6 @@ extension Driver {
       }
     }
     buildRecordInfo?.writeBuildRecord(
-      jobs,
       incrementalCompilationState?.blockingConcurrentMutationToProtectedState{$0.skippedCompilationInputs})
   }
 
@@ -2499,7 +2478,6 @@ extension Driver {
   /// Compute the path of the imported Objective-C header.
   static func computeImportedObjCHeader(
     _ parsedOptions: inout ParsedOptions,
-    compilerMode: CompilerMode,
     diagnosticEngine: DiagnosticsEngine
   ) throws -> VirtualPath.Handle? {
     guard let objcHeaderPathArg = parsedOptions.getLastArgument(.importObjcHeader) else {
@@ -2778,8 +2756,7 @@ extension Driver {
     _ parsedOptions: inout ParsedOptions,
     diagnosticsEngine: DiagnosticsEngine,
     toolchain: Toolchain,
-    executor: DriverExecutor,
-    swiftCompilerPrefixArgs: [String]) throws -> Triple {
+    executor: DriverExecutor) throws -> Triple {
 
     let frontendOverride = try FrontendOverride(&parsedOptions, diagnosticsEngine)
     frontendOverride.setUpForTargetInfo(toolchain)
@@ -3063,7 +3040,6 @@ extension Driver {
                                                 type: .swiftDocumentation,
                                                 isOutput: .emitModuleDoc,
                                                 outputPath: .emitModuleDocPath,
-                                                compilerOutputType: compilerOutputType,
                                                 compilerMode: compilerMode,
                                                 outputFileMap: outputFileMap,
                                                 moduleName: moduleName)
@@ -3085,7 +3061,6 @@ extension Driver {
                                                 type: .swiftSourceInfoFile,
                                                 isOutput: .emitModuleSourceInfo,
                                                 outputPath: .emitModuleSourceInfoPath,
-                                                compilerOutputType: compilerOutputType,
                                                 compilerMode: compilerMode,
                                                 outputFileMap: outputFileMap,
                                                 moduleName: moduleName,
@@ -3096,7 +3071,6 @@ extension Driver {
     _ parsedOptions: inout ParsedOptions,
     moduleOutputPath: VirtualPath.Handle?,
     mode: DigesterMode,
-    compilerOutputType: FileType?,
     compilerMode: CompilerMode,
     outputFileMap: OutputFileMap?,
     moduleName: String,
@@ -3109,7 +3083,6 @@ extension Driver {
                                                 type: mode.baselineFileType,
                                                 isOutput: .emitDigesterBaseline,
                                                 outputPath: .emitDigesterBaselinePath,
-                                                compilerOutputType: compilerOutputType,
                                                 compilerMode: compilerMode,
                                                 outputFileMap: outputFileMap,
                                                 moduleName: moduleName,
@@ -3125,7 +3098,6 @@ extension Driver {
     type: FileType,
     isOutput: Option?,
     outputPath: Option,
-    compilerOutputType: FileType?,
     compilerMode: CompilerMode,
     outputFileMap: OutputFileMap?,
     moduleName: String,

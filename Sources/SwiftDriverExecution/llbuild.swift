@@ -100,25 +100,15 @@ final class LLBuildEngine {
 
     return try T.BuildValue(value)
   }
-
-  func attachDB(path: String, schemaVersion: Int = 2) throws {
-    try engine.attachDB(path: path, schemaVersion: schemaVersion)
-  }
-
-  func close() {
-    engine.close()
-  }
 }
 
 // FIXME: Rename to something else.
 class LLTaskBuildEngine {
 
   let engine: TaskBuildEngine
-  let fileSystem: TSCBasic.FileSystem
 
-  init(_ engine: TaskBuildEngine, fileSystem: TSCBasic.FileSystem) {
+  init(_ engine: TaskBuildEngine) {
     self.engine = engine
-    self.fileSystem = fileSystem
   }
 
   func taskNeedsInput<T: LLBuildKey>(_ key: T, inputID: Int) {
@@ -142,26 +132,20 @@ class LLBuildRule: Rule, Task {
     fatalError("subclass responsibility")
   }
 
-  let fileSystem: TSCBasic.FileSystem
-
-  init(fileSystem: TSCBasic.FileSystem) {
-    self.fileSystem = fileSystem
-  }
-
   func createTask() -> Task {
     return self
   }
 
   func start(_ engine: TaskBuildEngine) {
-    self.start(LLTaskBuildEngine(engine, fileSystem: fileSystem))
+    self.start(LLTaskBuildEngine(engine))
   }
 
   func provideValue(_ engine: TaskBuildEngine, inputID: Int, value: Value) {
-    self.provideValue(LLTaskBuildEngine(engine, fileSystem: fileSystem), inputID: inputID, value: value)
+    self.provideValue(LLTaskBuildEngine(engine), inputID: inputID, value: value)
   }
 
   func inputsAvailable(_ engine: TaskBuildEngine) {
-    self.inputsAvailable(LLTaskBuildEngine(engine, fileSystem: fileSystem))
+    self.inputsAvailable(LLTaskBuildEngine(engine))
   }
 
   // MARK:-

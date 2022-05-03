@@ -44,10 +44,7 @@ extension IncrementalCompilationState {
 
     // FIXME: This should work without an output file map. We should have
     // another way to specify a build record and where to put intermediates.
-    let maybeBuildRecord =
-      buildRecordInfo.populateOutOfDateBuildRecord(
-        inputFiles: driver.inputFiles,
-        reporter: reporter)
+    let maybeBuildRecord = buildRecordInfo.populateOutOfDateBuildRecord(reporter: reporter)
 
     guard
       let initialState =

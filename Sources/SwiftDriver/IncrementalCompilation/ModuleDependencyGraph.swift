@@ -46,9 +46,6 @@ import struct TSCUtility.Version
     self.phase = newPhase
   }
 
-  /// The phase when the graph was created. Used to help diagnose later failures
-  let creationPhase: Phase
-
   fileprivate var currencyCache: ExternalDependencyCurrencyCache
   
   /// To speed all the node insertions and lookups, intern all the strings.
@@ -69,7 +66,6 @@ import struct TSCUtility.Version
       ? DependencyGraphDotFileWriter(info)
       : nil
     self.phase = phase
-    self.creationPhase = phase
     self.internedStringTable = internedStringTable
     self.nodeFinder = nodeFinder
     self.fingerprintedExternalDependencies = fingerprintedExternalDependencies
@@ -145,17 +141,6 @@ extension ModuleDependencyGraph {
         return false
       case .updatingAfterCompilation, .updatingFromAPrior:
         return true
-      }
-    }
-
-    var isWholeGraphPresent: Bool {
-      !isBuilding
-    }
-
-    var isBuilding: Bool {
-      switch self {
-      case .buildingFromSwiftDeps, .buildingAfterEachCompilation: return true
-      case .updatingFromAPrior, .updatingAfterCompilation: return false
       }
     }
   }
@@ -267,8 +252,7 @@ extension ModuleDependencyGraph {
     //  2. otherwise, it will have been reread, which should create changed nodes, etc.
     let affectedNodes = Tracer.collectPreviouslyUntracedNodesUsing(
       defNodes: nodes,
-      in: self,
-      diagnosticEngine: info.diagnosticEngine)
+      in: self)
       .tracedUses
     return affectedNodes.reduce(into: TransitivelyInvalidatedSwiftSourceFileSet()) {
       invalidatedInputs, affectedNode in
@@ -849,7 +833,7 @@ extension ModuleDependencyGraph {
           let identifier = try internedString(field: identifierField)
           let designator = try DependencyKey.Designator(
             kindCode: kindCode, context: context, name: identifier,
-            internedStringTable: internedStringTable, fileSystem: fileSystem)
+            internedStringTable: internedStringTable)
           return DependencyKey(aspect: declAspect, designator: designator)
         }
 
@@ -1282,8 +1266,7 @@ fileprivate extension DependencyKey.DeclAspect {
 
 fileprivate extension DependencyKey.Designator {
   init(kindCode: UInt64, context: InternedString, name: InternedString,
-       internedStringTable: InternedStringTable,
-       fileSystem: FileSystem) throws {
+       internedStringTable: InternedStringTable) throws {
     func mustBeEmpty(_ s: InternedString) throws {
       guard s.isEmpty else {
         throw ModuleDependencyGraph.ReadError.bogusNameOrContext
@@ -1336,29 +1319,6 @@ fileprivate extension DependencyKey.Designator {
 }
 
 // MARK: - Checking Serialization
-
-extension ModuleDependencyGraph {
-  func matches(_ other: ModuleDependencyGraph) -> Bool {
-    guard nodeFinder.matches(other.nodeFinder),
-          fingerprintedExternalDependencies.matches(other.fingerprintedExternalDependencies)
-    else {
-      return false
-    }
-    return true
-  }
-}
-
-extension Set where Element == ModuleDependencyGraph.Node {
-  fileprivate func matches(_ other: Self) -> Bool {
-    self == other
-  }
-}
-
-extension Set where Element == FingerprintedExternalDependency {
-  fileprivate func matches(_ other: Self) -> Bool {
-    self == other
-  }
-}
 
 fileprivate extension Version {
   var majorForWriting: UInt32 {

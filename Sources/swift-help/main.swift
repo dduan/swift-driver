@@ -70,22 +70,6 @@ struct SwiftHelp: ParsableCommand {
         help: "List hidden (unsupported) options")
   var showHidden: Bool = false
 
-  enum Color256: CustomStringConvertible {
-    case reset
-    case color(foreground: UInt8?, background: UInt8?)
-
-    var description: String {
-      switch self {
-      case .reset:
-        return "\u{001B}[0m"
-      case let .color(foreground, background):
-        let foreground = foreground.map { "\u{001B}[38;5;\($0)m" } ?? ""
-        let background = background.map { "\u{001B}[48;5;\($0)m" } ?? ""
-        return foreground + background
-      }
-    }
-  }
-
   func printIntro() {
     let is256Color = ProcessEnv.vars["TERM"] == "xterm-256color"
     let orangeRed = is256Color ? "\u{001b}[1;38;5;196m" : ""

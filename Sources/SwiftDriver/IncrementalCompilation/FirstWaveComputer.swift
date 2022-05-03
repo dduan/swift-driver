@@ -155,7 +155,7 @@ extension IncrementalCompilationState.FirstWaveComputer {
   ) -> Set<TypedVirtualPath> {
     let allGroups = jobsInPhases.compileGroups
     // Input == source file
-    let changedInputs = computeChangedInputs(moduleDependencyGraph, buildRecord)
+    let changedInputs = computeChangedInputs(buildRecord)
 
     if let reporter = reporter {
       for input in inputsInvalidatedByExternals {
@@ -251,7 +251,6 @@ extension IncrementalCompilationState.FirstWaveComputer {
 
   // Find the inputs that have changed since last compilation, or were marked as needed a build
   private func computeChangedInputs(
-    _ moduleDependencyGraph: ModuleDependencyGraph,
     _ outOfDateBuildRecord: BuildRecord
   ) -> [ChangedInput] {
     jobsInPhases.compileGroups.compactMap { group in

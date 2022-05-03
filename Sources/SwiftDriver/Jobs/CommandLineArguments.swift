@@ -127,12 +127,6 @@ extension Array where Element == Job.ArgTemplate {
     try append(parsedOption)
   }
 
-  mutating func append(contentsOf options: [ParsedOption]) throws {
-    for option in options {
-      try append(option)
-    }
-  }
-
   /// Append all parsed options that match one of the given options
   /// to this command line.
   mutating func appendAll(_ options: Option..., from parsedOptions: inout ParsedOptions) throws {
@@ -158,18 +152,6 @@ extension Array where Element == Job.ArgTemplate {
         }
       }
     }
-  }
-
-  /// Append the last of the given flags that appears in the parsed options,
-  /// or the flag that corresponds to the default value if neither
-  /// appears.
-  mutating func appendFlag(true trueFlag: Option, false falseFlag: Option, default defaultValue: Bool, from parsedOptions: inout ParsedOptions) {
-    let isTrue = parsedOptions.hasFlag(
-      positive: trueFlag,
-      negative: falseFlag,
-      default: defaultValue
-    )
-    appendFlag(isTrue ? trueFlag : falseFlag)
   }
 
   @available(*, deprecated, renamed: "joinedUnresolvedArguments")
